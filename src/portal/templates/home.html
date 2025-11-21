@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8" />
+    <title>FleeceTV – Streaming</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Theme Rouge */
+            --accent-1: #ef4444;   
+            --accent-2: #fb7185;   
+            --accent-3: #7f1d1d;  
+            --badge-green: #22c55e;
+
+            --bg-main: #0f0f0f;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+            --border-subtle: rgba(255,255,255,0.18);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            background:
+                radial-gradient(circle at 10% 0, rgba(239,68,68,0.15), transparent 55%),
+                radial-gradient(circle at 90% 0, rgba(251,113,133,0.12), transparent 60%),
+                #0f0f0f;
+            color: var(--text-main);
+        }
+
+        /* Header */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.9rem 2rem;
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            background: rgba(15,15,15,0.75);
+            backdrop-filter: blur(18px);
+        }
+
+        .menu-toggle {
+            width: 30px;
+            height: 22px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+        .menu-toggle span {
+            height: 3px;
+            background: var(--text-main);
+            border-radius: 999px;
+        }
+
+        .logo {
+            font-size: 1rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .logo span {
+            background: linear-gradient(120deg, var(--accent-1), var(--accent-3));
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        /* SEARCH BAR */
+        .search-bar-wrapper {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+        .search-bar {
+            width: min(560px, 96%);
+            display: flex;
+            align-items: center;
+            padding: 0.18rem;
+            border-radius: 999px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-3));
+        }
+        .search-inner {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: #1a1a1a;
+            border-radius: 999px;
+            padding: 0.4rem 0.6rem;
+        }
+        .search-inner input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            color: var(--text-main);
+        }
+        .search-inner input::placeholder {
+            color: var(--text-muted);
+        }
+        .search-bar button {
+            border: none;
+            background: white;
+            padding: 0.45rem 1rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            cursor: pointer;
+            color: #111;
+            font-weight: 600;
+        }
+
+        /* Avatar */
+        .avatar {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: 700;
+        }
+
+        /* MAIN */
+        main {
+            padding: 2rem 3vw;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            margin: 1.8rem 0.8rem 0.7rem;
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            text-transform: lowercase;
+            position: relative;
+        }
+        .section-title::after {
+            content: "";
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 120px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--accent-1), transparent);
+        }
+
+        .section-link {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            cursor: pointer;
+        }
+        .section-link:hover {
+            color: var(--accent-1);
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.3rem;
+            padding: 0 0.8rem;
+        }
+
+        @media (max-width: 900px) {
+            .cards-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        .card {
+            position: relative;
+            border-radius: 22px;
+            overflow: hidden;
+            aspect-ratio: 3 / 4;
+            background: #1a1a1a;
+            box-shadow:
+                0 0 0 1px rgba(255,255,255,0.05),
+                0 18px 40px rgba(0,0,0,0.6);
+            transition: 0.2s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow:
+                0 0 0 1px rgba(239,68,68,0.5),
+                0 28px 60px rgba(0,0,0,0.9);
+        }
+
+        .card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                radial-gradient(circle at top left, rgba(239,68,68,0.38), transparent 55%);
+        }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 1rem;
+            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 55%);
+        }
+
+        .card-tag {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+        }
+
+        .card-title {
+            font-weight: 600;
+            margin-bottom: 0.2rem;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        .badge {
+            padding: 0.15rem 0.55rem;
+            border-radius: 999px;
+            background: rgba(239,68,68,0.25);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            gap: 0.25rem;
+            align-items: center;
+            font-size: 0.7rem;
+        }
+        .badge-dot {
+            width: 6px;
+            height: 6px;
+            background: var(--badge-green);
+            border-radius: 999px;
+        }
+
+        .age-pill {
+            padding: 0.1rem 0.45rem;
+            border: 1px solid var(--border-subtle);
+            border-radius: 999px;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <div class="header-left">
+        <div class="menu-toggle">
+            <span></span><span></span><span></span>
+        </div>
+
+    </div>
+
+    <div class="search-bar-wrapper">
+        <form class="search-bar">
+            <div class="search-inner">
+                <span>🔍</span>
+                <input type="text" placeholder="Rechercher un film, une série..." />
+            </div>
+            <button>Go</button>
+        </form>
+    </div>
+
+    <div class="avatar">
+        <img src="/src/portal/static/image/avatar.png" alt="" style="width: 107%;">
+    </div>
+</header>
+
+<main>
+
+    <section>
+        <div class="section-header">
+            <h2 class="section-title">récemment ajouté</h2>
+        </div>
+
+        <div class="cards-grid">
+            <!-- 8 cartes -->
+            <div class="card"><div class="card-overlay"><div class="card-tag">film</div><div class="card-title">Rouge Spectral</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>nouveau</span><span>2 h 14</span></div></div></div>
+            <div class="card"><div class="card-overlay"><div class="card-tag">série</div><div class="card-title">Brume Rouge</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>s3</span><span>18+</span></div></div></div>
+            <div class="card"><div class="card-overlay"><div class="card-tag">film</div><div class="card-title">Noctis</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>thriller</span><span>13+</span></div></div></div>
+            <div class="card"><div class="card-overlay"><div class="card-tag">série</div><div class="card-title">Cendre</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>top</span><span>10 ép.</span></div></div></div>
+
+            <div class="card"><div class="card-overlay"><div class="card-tag">film</div><div class="card-title">Trajectoire</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>action</span><span>1 h 49</span></div></div></div>
+            <div class="card"><div class="card-overlay"><div class="card-tag">série</div><div class="card-title">Flux Perdu</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>nouveau</span><span>6 ép.</span></div></div></div>
+            <div class="card"><div class="card-overlay"><div class="card-tag">film</div><div class="card-title">Ligne Rouge</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>drame</span><span>2 h 01</span></div></div></div>
+            <div class="card"><div class="card-overlay"><div class="card-tag">série</div><div class="card-title">Minuit 23</div><div class="card-meta"><span class="badge"><span class="badge-dot"></span>top 10</span><span>16+</span></div></div></div>
+        </div>
+    </section>
+
+
+</main>
+
+</body>
+</html>
