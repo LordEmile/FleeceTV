@@ -1,0 +1,26 @@
+services:
+
+  fleeceTV_bd:
+    image: postgres:16
+    container_name: fleeceTV_bd
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB} 
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432" 
+    volumes: 
+      - ${DB_DATA_PATH}:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+
+
+  #fleeceTV_api:
+
+  #fleeceTV_portal:
+
+  #fleeceTV_scanner:
