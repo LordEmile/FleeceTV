@@ -1,6 +1,6 @@
 services:
 
-  fleeceTV_bd:
+  fleecetv_bd:
     image: postgres:16
     container_name: fleeceTV_bd
     restart: always
@@ -19,8 +19,32 @@ services:
       retries: 5
 
 
-  #fleeceTV_api:
+  fleecetv_api:
+    build:
+      context: .
+      dockerfile: src/api/Dockerfile
+    container_name: fleeceTV_api
+    restart: always
+    depends_on:
+      - fleecetv_bd
+    ports:
+      - "8000:8000"
+    environment:
+      MEDIA_PATH: /media
+    volumes:
+      - ${NAS_PATH}:/media:ro
 
-  #fleeceTV_portal:
 
-  #fleeceTV_scanner:
+  fleecetv_portal:
+    build:
+      context: .
+      dockerfile: src/portal/Dockerfile 
+    container_name: fleeceTV_portal
+    environment:
+      FLEECETV_API_URL: ${FLEECETV_API_URL}
+    restart: always
+    depends_on:
+      - fleecetv_api
+    ports:
+      - "8080:8080"
+
