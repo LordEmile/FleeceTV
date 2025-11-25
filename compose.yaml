@@ -31,20 +31,22 @@ services:
       - "8000:8000"
     environment:
       MEDIA_PATH: /media
+      DATABASE_URL: ${DATABASE_URL}
     volumes:
       - ${NAS_PATH}:/media:ro
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 
 
-  fleecetv_portal:
-    build:
-      context: .
-      dockerfile: src/portal/Dockerfile 
-    container_name: fleeceTV_portal
-    environment:
-      FLEECETV_API_URL: ${FLEECETV_API_URL}
-    restart: always
-    depends_on:
-      - fleecetv_api
-    ports:
-      - "8080:8080"
+  #fleecetv_portal:
+  #  build:
+  #    context: .
+  #    dockerfile: src/portal/Dockerfile 
+  #  container_name: fleeceTV_portal
+  #  environment:
+  #    FLEECETV_API_URL: ${FLEECETV_API_URL}
+  #  restart: always
+  #  depends_on:
+  #    - fleecetv_api
+  #  ports:
+  #    - "8080:8080"
 
