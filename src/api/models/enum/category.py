@@ -1,5 +1,5 @@
 from enum import Enum
-class EnumCategory(str, Enum):
+class EnumCategory(Enum):
     action = "ACTION"
     scifi = "SCI-FI"
     drama = "DRAMA"

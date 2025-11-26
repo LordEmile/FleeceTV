@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, Date,Enum, Float
 from ..db.base import Base
 from datetime import date
-from models.enum.category import EnumCategory
+from api.models.enum.category import EnumCategory
 from sqlalchemy.orm import relationship
 
 class Serie(Base):

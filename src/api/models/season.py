@@ -6,7 +6,7 @@ from datetime import date
 class Season(Base):
     __tablename__ = "seasons"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    serie_id = Column(Integer, ForeignKey(series.id))
+    serie_id = Column(Integer, ForeignKey("series.id"))
     number = Column(Integer, nullable=False)
     tmdb_id = Column(Integer, nullable=False)
     description = Column(String, nullable=False)
