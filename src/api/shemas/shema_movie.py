@@ -11,3 +11,6 @@ class movieResponce(BaseModel):
     rating : str
     poster_url : str
     updated_at : str
+
+    class Config:
+        from_attributes = True
