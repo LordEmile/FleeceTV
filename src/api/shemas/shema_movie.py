@@ -1,7 +1,10 @@
 from pydantic import BaseModel
+from api.models.enum.category import EnumCategory
 
 class movieCreate(BaseModel):
     title : str
+    release_years : str
+    category : EnumCategory
 
 class movieResponce(BaseModel):
     title : str

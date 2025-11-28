@@ -32,8 +32,10 @@ services:
     environment:
       MEDIA_PATH: /media
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@fleeceTV_bd:5432/${POSTGRES_DB}
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      TMDB_BASE_URL: ${TMDB_BASE_URL}
     volumes:
-      - ${NAS_PATH}:/media:ro
+      - ${NAS_PATH}:/media:rw
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
 
 
