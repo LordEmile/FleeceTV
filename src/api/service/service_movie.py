@@ -11,11 +11,12 @@ from api.shemas.shema_movie import movieCreate, movieResponce
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
+JACKETT_KEY = os.getenv("JACKETT_KEY")
 BASE_MEDIA_DIR = Path("/media")
 POSTER_DIR = BASE_MEDIA_DIR / "posters"
 MOVIE_DIR = BASE_MEDIA_DIR / "movies"
 
-#methode pour chercher les information sur un film a partir du titre
+#interaction avec tmdb
 async def search_movie_tmdb(title : str, years : str):
     url = "https://api.themoviedb.org/3/search/movie"
     params = {
@@ -38,6 +39,22 @@ async def download_image(img_path : str, filename :str):
         file_path.write_bytes(response.content)
     return str(file_path)
     
+
+#interaction avec jacket
+async def search_movie_torrent(title : str, lang : EnumLanguage):
+    url = ""
+    params = {
+        "apikey": JACKETT_KEY,
+        "t": "movie",
+        "q": title
+    }
+    async with httpx.AsyncClient() as client:
+        result = await client.get("url", params=params)
+        result.raise_for_status()
+        
+async def download_movie_torrent(magnet : str):
+    return magnet
+
 
 #methode pour créer un film
 async def create_movie(db: Session, data: movieCreate) -> Movie:
