@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from api.models.movie import Movie
 from api.models.files import File
 from api.models.enum.language import EnumLanguage
+from api.service.service_filter import filter_movie_torrent
 from api.shemas.shema_movie import movieCreate, movieResponce
 
 load_dotenv()
@@ -46,14 +47,18 @@ async def search_movie_torrent(title : str, lang : EnumLanguage):
     params = {
         "apikey": JACKETT_KEY,
         "t": "movie",
-        "q": title
+        "q": title,
+        "cat": "2000"
     }
     async with httpx.AsyncClient() as client:
-        result = await client.get("url", params=params)
-        result.raise_for_status()
+        liste = await client.get("url", params=params)
+        liste.raise_for_status()
+    result = filter_movie_torrent(list=liste)
+    torrent = result.link
+    return torrent
         
 async def download_movie_torrent(magnet : str):
-    return magnet
+    return
 
 
 #methode pour créer un film
