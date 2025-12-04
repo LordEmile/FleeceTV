@@ -42,7 +42,7 @@ async def download_image(img_path : str, filename :str):
     
 
 #interaction avec jacket
-async def search_movie_torrent(title : str, lang : EnumLanguage):
+async def search_movie_torrent(title : str):
     url = ""
     params = {
         "apikey": JACKETT_KEY,
@@ -68,32 +68,45 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     category = movieCreate.category
     infoResJson = await search_movie_tmdb(title, years)
     infoJson = infoResJson[0]
-    filename = f"{title}{years}"
+    filename = f"{title} {years}"
     img_file_path = await download_image(infoJson["poster_path"], filename)
 
-    movie = Movie(
-        title = infoJson["original_title"],
-        tmdb_id = infoJson["id"],
-        description = infoJson["overview"],
-        category = category,
-        release_date = infoJson["release_date"],
-        poster_url = img_file_path,
-        updated_at = datetime.date.today
-    )
-    file1 = File(
-        movie_id = movie.id,
-        language = EnumLanguage.vostfr,
-        file_path = f"{MOVIE_DIR}/{filename}_vostfr.mp4"
-    )
-    file2 = File(
-        movie_id = movie.id,
-        language = EnumLanguage.vf,
-        file_path = f"{MOVIE_DIR}/{filename}_vf.mp4"
-    )
+    torrentXml = await search_movie_torrent(filename)
+    torrent, isIntegral, isMulti, lang = await filter_movie_torrent(torrentXml)
+    if isIntegral and isMulti:
+        #ajouter methode pour separer en plusieur fichier
+        file_path = await download_movie_torrent(torrent.link)
+    elif isMulti:
+        file_path = await download_movie_torrent(torrent.link)
+    elif lang == "vf":
+        torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vostfr")
+        if lang2 == "vostfr":
+            #ajouter methode pour combiner vf vostfr
+            file_path = await download_movie_torrent()
+    elif lang == "vostfr":
+        torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vf")
+        if lang2 == "vf":
+            #ajouter methode pour combiner vf vostfr
+            file_path = await download_movie_torrent()
+
+    #movie = Movie(
+    #    title = infoJson["original_title"],
+    #    tmdb_id = infoJson["id"],
+    #    description = infoJson["overview"],
+    #    category = category,
+    #    release_date = infoJson["release_date"],
+    #    poster_url = img_file_path,
+    #    updated_at = datetime.date.today
+    #)
+    #file = File(
+    #    movie_id = movie.id,
+    #    language = EnumLanguage.vostfr,
+    #    file_path = f"{MOVIE_DIR}/{filename}_multi"
+    #)
+
 
     db.add(movie)
-    db.add(file1)
-    db.add(file2)
+    db.add(file)
     db.commit()
 
     return movie
