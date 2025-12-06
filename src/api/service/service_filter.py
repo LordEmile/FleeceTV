@@ -1,11 +1,12 @@
 import xml.etree.ElementTree as ET
 
+#trie l'ensemble des torrent donné pour retourné uniquemet celui demandé
 async def filter_movie_torrent(xml, params):
     TRADUCTION = ["FRENCH", "TRUEFRENCH", "VF"]
     VO = ["VOSTFR"]
     MULTI = ["MULTI", ]
     INTEGRAL = ["integrale", "integrales", "trilogie"]
-    QUAL = ["1080"]
+    QUAL = ["1080", "1080p"]
     root = ET.fromstring(xml.text)
     liste = []
     result = []

@@ -9,14 +9,14 @@ from api.models.files import File
 from api.models.enum.language import EnumLanguage
 from api.service.service_filter import filter_movie_torrent
 from api.shemas.shema_movie import movieCreate, movieResponce
-from api.service.service_files import download_image, download_movie_torrent, merge_movieTrack_download, split_movie_download
+from api.service.service_files import download_image, download_movie_torrent, merge_movieTrack_download, split_movie_download, transcode_file
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
 JACKETT_KEY = os.getenv("JACKETT_KEY")
 
 
-#interaction avec tmdb
+#recherche de film a partir de l'api tmdb
 async def search_movie_tmdb(title : str, years : str):
     url = "https://api.themoviedb.org/3/search/movie"
     params = {
@@ -30,9 +30,9 @@ async def search_movie_tmdb(title : str, years : str):
         return response.json()
     
 
-#interaction avec jacket
+#recherche de torrentsa partir de l'api(local) jackett
 async def search_movie_torrent(title : str):
-    url = ""
+    url = "http://jackett:9117/api/v2.0/indexers/all/results/torznab"
     params = {
         "apikey": JACKETT_KEY,
         "t": "movie",
@@ -47,7 +47,7 @@ async def search_movie_torrent(title : str):
     return torrent
         
 
-#methode pour créer un film
+#création d'un nouveau film(sauvegarde en bd et dans le nas)
 async def create_movie(db: Session, data: movieCreate) -> Movie:
     title = movieCreate.title
     years = movieCreate.release_years
@@ -63,15 +63,21 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
         file_path_list = await split_movie_download(torrent.link)
     elif isMulti:
         file_path = await download_movie_torrent(torrent.link)
+        await transcode_file(file_path)
+        #créer film en db
     elif lang == "vf":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vostfr")
         if lang2 == "vostfr":
             file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
+            await transcode_file(file_path)
+            #créer le film en bd
     elif lang == "vostfr":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vf")
         if lang2 == "vf":
             file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
-
+            await transcode_file(file_path)
+            #créer film en bd
+            
     #movie = Movie(
     #    title = infoJson["original_title"],
     #    tmdb_id = infoJson["id"],

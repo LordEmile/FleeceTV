@@ -4,5 +4,6 @@ pydantic
 sqlalchemy
 psycopg2-binary
 alembic
+libtorrent
 python-dotenv
 httpx
