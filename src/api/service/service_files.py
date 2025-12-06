@@ -1,6 +1,7 @@
 import httpx
 import tempfile
 import asyncio
+from moviepy import VideoFileClip
 import libtorrent as libt
 from dotenv import load_dotenv
 from pathlib import Path
@@ -12,7 +13,7 @@ MOVIE_DIR = BASE_MEDIA_DIR / "movies"
 
 
 #download et sauvegarde dans le nas un poster
-async def download_image(img_path : str, filename :str):
+async def download_image(img_path : str, filename : str):
     url = "https://image.tmdb.org/t/p/w500/"
     request = f"{url}{img_path}"
     file_path = POSTER_DIR / f"{filename}.jpg"
@@ -24,7 +25,18 @@ async def download_image(img_path : str, filename :str):
 
 #converti un fichier donné en mp4 avec codex unniformisé
 async def transcode_file(entry_file):
-    return
+    output_file = entry_file.with_suffix(".mp4")
+    clip = VideoFileClip(str(entry_file))
+    clip.write_videofile(
+        str(output_file),
+        codex="libx264",
+        audio_codex="aac"
+    )
+    clip.close
+    if entry_file != output_file:
+        entry_file.unlink()
+    return output_file
+
 
 
 #download et sauvegarde dans le nas un film a partir d'un torrent donné

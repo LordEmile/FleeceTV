@@ -60,22 +60,22 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     torrentXml = await search_movie_torrent(filename)
     torrent, isIntegral, isMulti, lang = await filter_movie_torrent(torrentXml)
     if isIntegral and isMulti:
-        file_path_list = await split_movie_download(torrent.link)
+        tmp_file_path_list = await split_movie_download(torrent.link)
     elif isMulti:
-        file_path = await download_movie_torrent(torrent.link)
-        await transcode_file(file_path)
+        tmp_file_path = await download_movie_torrent(torrent.link)
+        file_path = await transcode_file(tmp_file_path)
         #créer film en db
     elif lang == "vf":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vostfr")
         if lang2 == "vostfr":
-            file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
-            await transcode_file(file_path)
+            tmp_file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
+            file_path = await transcode_file(tmp_file_path)
             #créer le film en bd
     elif lang == "vostfr":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vf")
         if lang2 == "vf":
-            file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
-            await transcode_file(file_path)
+            tmp_file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
+            file_path = await transcode_file(tmp_file_path)
             #créer film en bd
             
     #movie = Movie(
@@ -92,11 +92,6 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     #    language = EnumLanguage.vostfr,
     #    file_path = f"{MOVIE_DIR}/{filename}_multi"
     #)
-
-
-    db.add()
-    db.add()
-    db.commit()
 
     return 
 
