@@ -1,6 +1,7 @@
 import httpx
 import tempfile
 import asyncio
+import subprocess
 from moviepy import VideoFileClip
 import libtorrent as libt
 from dotenv import load_dotenv
@@ -11,6 +12,20 @@ BASE_MEDIA_DIR = Path("/media")
 POSTER_DIR = BASE_MEDIA_DIR / "posters"
 MOVIE_DIR = BASE_MEDIA_DIR / "movies"
 
+#fonction pour démarer un service ffmpeg et executer un request
+async def run_ffmpeg(cmd: list[str]) -> None:
+    proc = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    out, err = await proc.communicate()
+    if proc.returncode != 0:
+        raise RuntimeError(
+            f"ffmpeg failed (code {proc.returncode})\n"
+            f"STDOUT:\n{out.decode(errors='ignore')}\n"
+            f"STDERR:\n{err.decode(errors='ignore')}"
+        )
 
 #download et sauvegarde dans le nas un poster
 async def download_image(img_path : str, filename : str):
@@ -24,19 +39,22 @@ async def download_image(img_path : str, filename : str):
     return str(file_path)
 
 #converti un fichier donné en mp4 avec codex unniformisé
-async def transcode_file(entry_file):
-    output_file = entry_file.with_suffix(".mp4")
+async def transcode_file(entry_file:Path, final_name:str | None=None):
+    if final_name:
+        output_file = entry_file.with_name(f"{final_name}_multi.mp4")
+    else:
+        output_file = entry_file.with_suffix(".mp4")
+
     clip = VideoFileClip(str(entry_file))
     clip.write_videofile(
         str(output_file),
-        codex="libx264",
-        audio_codex="aac"
+        codec="libx264",
+        audio_codec="aac"
     )
-    clip.close
+    clip.close()
     if entry_file != output_file:
         entry_file.unlink()
     return output_file
-
 
 
 #download et sauvegarde dans le nas un film a partir d'un torrent donné
@@ -82,6 +100,42 @@ async def split_movie_download(torrent_url):
     return
 
 #download, sauvegarde en nas et combine plusieur torrent pour en generé un seul fichier
-async def merge_movieTrack_download(torrent1_url, torrent2_url):
-    return
+async def merge_movieTrack_download(torrent1_vf, torrent2_vostfr, filename):
+    tmp_vf = await download_movie_torrent(torrent1_vf)
+    tmp_vostfr = await download_movie_torrent(torrent2_vostfr)
+    vf_mp4 = await transcode_file(tmp_vf, final_name=f"{filename}_VF")
+    vostfr_mp4 = await transcode_file(tmp_vostfr, final_name=f"{filename}")
+
+    output_file = Path(vostfr_mp4).with_name(f"{filename}_MULTI.mp4")
+    try:
+        cmd = [
+            "ffmpeg",
+            "-y",
+            "-i", str(vostfr_mp4),   # input 0: VOSTFR (vidéo + VO + subs)
+            "-i", str(vf_mp4),       # input 1: VF (audio FR)
+            "-map", "0:v:0",         # vidéo depuis VOSTFR
+            "-map", "1:a:0",         # audio VF depuis VF
+            "-map", "0:a:0",         # audio VO depuis VOSTFR
+            "-map", "0:s:0?",        # sous-titres FR si présents (le ? évite crash si absent)
+            "-c:v", "copy",
+            "-c:a", "copy",
+            "-c:s", "mov_text",
+            "-metadata:s:a:0", "language=fra",
+            "-metadata:s:a:0", "title=Français (VF)",
+            "-metadata:s:a:1", "language=eng",
+            "-metadata:s:a:1", "title=English (VO)",
+            "-metadata:s:s:0", "language=fra",
+            "-metadata:s:s:0", "title=Sous-titres FR",
+            "-disposition:a:0", "default",
+            "-disposition:s:0", "0",   # subs OFF par défaut
+            str(output_file),
+        ]
+        await run_ffmpeg(cmd)
+        return output_file
+    
+    finally:
+        Path(vf_mp4).unlink(missing_ok=True)
+        Path(vostfr_mp4).unlink(missing_ok=True)
+
+    
 

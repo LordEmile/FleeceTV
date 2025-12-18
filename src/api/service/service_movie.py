@@ -9,7 +9,7 @@ from api.models.files import File
 from api.models.enum.language import EnumLanguage
 from api.service.service_filter import filter_movie_torrent
 from api.shemas.shema_movie import movieCreate, movieResponce
-from api.service.service_files import download_image, download_movie_torrent, merge_movieTrack_download, split_movie_download, transcode_file
+from api.service.service_files import * 
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
@@ -54,44 +54,77 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     category = movieCreate.category
     infoResJson = await search_movie_tmdb(title, years)
     infoJson = infoResJson[0]
-    filename = f"{title} {years}"
+    filename = f"{title}{years}"
     img_file_path = await download_image(infoJson["poster_path"], filename)
-
-    torrentXml = await search_movie_torrent(filename)
+    torrentXml = await search_movie_torrent(f"{title} {years}")
     torrent, isIntegral, isMulti, lang = await filter_movie_torrent(torrentXml)
     if isIntegral and isMulti:
         tmp_file_path_list = await split_movie_download(torrent.link)
+        
+
     elif isMulti:
         tmp_file_path = await download_movie_torrent(torrent.link)
         file_path = await transcode_file(tmp_file_path)
-        #créer film en db
+        movie = Movie(
+            title = infoJson["original_title"],
+            tmdb_id = infoJson["id"],
+            description = infoJson["overview"],
+            category = category,
+            release_date = infoJson["release_date"],
+            poster_url = img_file_path,
+            updated_at = datetime.date.today
+        )
+        file = File(
+            movie_id = movie.id,
+            language = EnumLanguage.multi,
+            file_path = file_path
+        )
+        db.add(movie)
+        db.add(file)
+        db.commit
     elif lang == "vf":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vostfr")
         if lang2 == "vostfr":
-            tmp_file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
-            file_path = await transcode_file(tmp_file_path)
-            #créer le film en bd
+            file_path = await merge_movieTrack_download(torrent.link, torrent2.link, filename)
+            movie = Movie(
+                title = infoJson["original_title"],
+                tmdb_id = infoJson["id"],
+                description = infoJson["overview"],
+                category = category,
+                release_date = infoJson["release_date"],
+                poster_url = img_file_path,
+                updated_at = datetime.date.today
+            )
+            file = File(
+                movie_id = movie.id,
+                language = EnumLanguage.multi,
+                file_path = file_path
+            )
+            db.add(movie)
+            db.add(file)
+            db.commit
     elif lang == "vostfr":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vf")
         if lang2 == "vf":
-            tmp_file_path = await merge_movieTrack_download(torrent.link, torrent2.link)
-            file_path = await transcode_file(tmp_file_path)
-            #créer film en bd
+            file_path = await merge_movieTrack_download(torrent.link, torrent2.link, filename)
+            movie = Movie(
+                title = infoJson["original_title"],
+                tmdb_id = infoJson["id"],
+                description = infoJson["overview"],
+                category = category,
+                release_date = infoJson["release_date"],
+                poster_url = img_file_path,
+                updated_at = datetime.date.today
+            )
+            file = File(
+                movie_id = movie.id,
+                language = EnumLanguage.multi,
+                file_path = file_path
+            )
+            db.add(movie)
+            db.add(file)
+            db.commit
             
-    #movie = Movie(
-    #    title = infoJson["original_title"],
-    #    tmdb_id = infoJson["id"],
-    #    description = infoJson["overview"],
-    #    category = category,
-    #    release_date = infoJson["release_date"],
-    #    poster_url = img_file_path,
-    #    updated_at = datetime.date.today
-    #)
-    #file = File(
-    #    movie_id = movie.id,
-    #    language = EnumLanguage.vostfr,
-    #    file_path = f"{MOVIE_DIR}/{filename}_multi"
-    #)
 
     return 
 
