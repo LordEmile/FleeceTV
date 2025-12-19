@@ -49,9 +49,9 @@ async def search_movie_torrent(title : str):
 
 #création d'un nouveau film(sauvegarde en bd et dans le nas)
 async def create_movie(db: Session, data: movieCreate) -> Movie:
-    title = movieCreate.title
-    years = movieCreate.release_years
-    category = movieCreate.category
+    title = data.title
+    years = data.release_years
+    category = data.category
     infoResJson = await search_movie_tmdb(title, years)
     infoJson = infoResJson[0]
     filename = f"{title}{years}"
@@ -59,12 +59,32 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     torrentXml = await search_movie_torrent(f"{title} {years}")
     torrent, isIntegral, isMulti, lang = await filter_movie_torrent(torrentXml)
     if isIntegral and isMulti:
-        tmp_file_path_list = await split_movie_download(torrent.link)
-        
-
+        file_path = await split_movie_download(torrent.link, filename, title)
+        y=0
+        for i in file_path:
+            y+=1
+            movie = Movie(
+                title = f"{title} {y}",
+                tmdb_id = infoJson["id"],
+                description = infoJson["overview"],
+                category = category,
+                release_date = infoJson["release_date"],
+                poster_url = img_file_path,
+                updated_at = datetime.date.today()
+            )
+            db.add(movie)
+            db.flush()
+            file = File(
+                movie_id = movie.id,
+                language = EnumLanguage.multi,
+                file_path = i
+            )
+            db.add(file)
+        db.commit()
     elif isMulti:
         tmp_file_path = await download_movie_torrent(torrent.link)
-        file_path = await transcode_file(tmp_file_path)
+        tmp = max(tmp_file_path, key=lambda p: p.stat().st_size)
+        file_path = await transcode_file(tmp)
         movie = Movie(
             title = infoJson["original_title"],
             tmdb_id = infoJson["id"],
@@ -72,16 +92,17 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
             category = category,
             release_date = infoJson["release_date"],
             poster_url = img_file_path,
-            updated_at = datetime.date.today
+            updated_at = datetime.date.today()
         )
+        db.add(movie)
+        db.flush()
         file = File(
             movie_id = movie.id,
             language = EnumLanguage.multi,
             file_path = file_path
         )
-        db.add(movie)
         db.add(file)
-        db.commit
+        db.commit()
     elif lang == "vf":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vostfr")
         if lang2 == "vostfr":
@@ -93,16 +114,17 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
                 category = category,
                 release_date = infoJson["release_date"],
                 poster_url = img_file_path,
-                updated_at = datetime.date.today
+                updated_at = datetime.date.today()
             )
+            db.add(movie)
+            db.flush()
             file = File(
                 movie_id = movie.id,
                 language = EnumLanguage.multi,
                 file_path = file_path
             )
-            db.add(movie)
             db.add(file)
-            db.commit
+            db.commit()
     elif lang == "vostfr":
         torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vf")
         if lang2 == "vf":
@@ -114,17 +136,17 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
                 category = category,
                 release_date = infoJson["release_date"],
                 poster_url = img_file_path,
-                updated_at = datetime.date.today
+                updated_at = datetime.date.today()
             )
+            db.add(movie)
+            db.flush()
             file = File(
                 movie_id = movie.id,
                 language = EnumLanguage.multi,
                 file_path = file_path
             )
-            db.add(movie)
             db.add(file)
-            db.commit
-            
-
-    return 
+            db.commit()
+        
+    return movie
 

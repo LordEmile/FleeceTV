@@ -1,7 +1,6 @@
 import httpx
 import tempfile
 import asyncio
-import subprocess
 from moviepy import VideoFileClip
 import libtorrent as libt
 from dotenv import load_dotenv
@@ -77,13 +76,15 @@ async def download_movie_torrent(torrent_url):
     fs = handle.get_torrent_info()
     file_info = fs.files()
     file_count = file_info.num_files()
+    final_path =[]
     for i in range(file_count):
         file_path = file_info.file_path(i)
         name = file_path.lower()
         is_movie = name.endswith(".mkv") or name.endswith(".mp4")
         if is_movie:
             priorities.append(4)
-            final_path = MOVIE_DIR / file_path
+            path = MOVIE_DIR / file_path
+            final_path.append(path)
         else:
             priorities.append(0)
     handle.prioritize_files(priorities)
@@ -92,17 +93,26 @@ async def download_movie_torrent(torrent_url):
         print(f"\r{int(s.progress * 100)}% - Peers: {s.num_peers}", end="")
         await asyncio.sleep(1)
     print("\nTéléchargement terminé")
-
     return final_path
 
 #download et sauvegarde en nas une serie de film a partir d'un seul torrent
-async def split_movie_download(torrent_url):
-    return
+async def split_movie_download(torrent_url, filename):
+    movie_list = await download_movie_torrent(torrent_url)
+    path_list = []
+    y = 0
+    for i in movie_list:
+        y += 1
+        path = await transcode_file(i, final_name=f"{filename}{y}")
+        path_list.append(path)
+    return path_list
+        
 
 #download, sauvegarde en nas et combine plusieur torrent pour en generé un seul fichier
 async def merge_movieTrack_download(torrent1_vf, torrent2_vostfr, filename):
-    tmp_vf = await download_movie_torrent(torrent1_vf)
-    tmp_vostfr = await download_movie_torrent(torrent2_vostfr)
+    vf_list = await download_movie_torrent(torrent1_vf)
+    vostfr_list = await download_movie_torrent(torrent2_vostfr)
+    tmp_vf = max(vf_list, key=lambda p: p.stat().st_size)
+    tmp_vostfr = max(vostfr_list, key=lambda p: p.stat().st_size)
     vf_mp4 = await transcode_file(tmp_vf, final_name=f"{filename}_VF")
     vostfr_mp4 = await transcode_file(tmp_vostfr, final_name=f"{filename}")
 
