@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from api.models.enum.category import EnumCategory
 
 class movieCreate(BaseModel):
@@ -8,12 +8,11 @@ class movieCreate(BaseModel):
 
 class movieResponce(BaseModel):
     title : str
-    category : str
+    category : EnumCategory
     description : str
     release_date : str
     rating : str
     poster_url : str
     updated_at : str
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

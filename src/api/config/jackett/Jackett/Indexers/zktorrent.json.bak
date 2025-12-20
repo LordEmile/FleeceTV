@@ -9,13 +9,13 @@
     "id": "cookieheader",
     "type": "hiddendata",
     "name": "CookieHeader",
-    "value": null
+    "value": ""
   },
   {
     "id": "lasterror",
     "type": "hiddendata",
     "name": "LastError",
-    "value": null
+    "value": "Exception (zktorrent): Got redirected to another domain. Try changing the indexer URL to https://ww1-zktorrent.town/.: Parse error"
   },
   {
     "id": "replacemultibyanotherlanguageinreleasename",

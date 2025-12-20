@@ -29,6 +29,9 @@ services:
       - fleecetv_bd
     ports:
       - "8000:8000"
+      - "53317:53317/tcp"
+      - "53317:53317/udp"
+
     environment:
       MEDIA_PATH: /media
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@fleeceTV_bd:5432/${POSTGRES_DB}
@@ -38,6 +41,9 @@ services:
     volumes:
       - ${NAS_PATH}:/media:rw
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
 
 
   jackett:

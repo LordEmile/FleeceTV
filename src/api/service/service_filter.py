@@ -1,13 +1,17 @@
 import xml.etree.ElementTree as ET
+from fastapi import HTTPException
 
 #trie l'ensemble des torrent donné pour retourné uniquemet celui demandé
-async def filter_movie_torrent(xml, params):
+async def filter_movie_torrent(xml, params:str | None=None):
     TRADUCTION = ["FRENCH", "TRUEFRENCH", "VF"]
     VO = ["VOSTFR"]
-    MULTI = ["MULTI", ]
-    INTEGRAL = ["integrale", "integrales", "trilogie"]
-    QUAL = ["1080", "1080p"]
-    root = ET.fromstring(xml.text)
+    MULTI = ["MULTI"]
+    INTEGRAL = ["INTERGRALE","INTEGRALES","(INTEGRALE)", "(INTEGRALES)", "TRILOGIE", "(TRILOGIE)","HEPTALOGY" ,"HEXALOGIE", "(HEXALOGIE)", "(HEPTALOGY)"]
+    QUAL = ["1080", "1080P","1080p" ,"DVDRIP"]
+    try:
+        root = ET.fromstring(xml)
+    except ET.ParseError as e:
+        raise HTTPException(status_code=502, detail=f"FILTER: invalid XML: {str(e)}")
     liste = []
     result = []
     isMultiLang = False
@@ -16,7 +20,8 @@ async def filter_movie_torrent(xml, params):
 
     for i in root.findall(".//item"):
         title = i.findtext("title", "").strip()
-        link = i.findtext("link", "")
+        enclosure = i.find("enclosure")
+        link = enclosure.get("url") if enclosure is not None else None
         size_text = i.findtext("size")
         size = int(size_text) if size_text else None
         seeders = 0
@@ -37,7 +42,7 @@ async def filter_movie_torrent(xml, params):
         has_multi = any(m in title.upper() for m in MULTI)
         has_trad = any(t in title.upper() for t in TRADUCTION)
         has_vo = any(v in title.upper() for v in VO) 
-        if seeders <=5 or not has_qual:
+        if seeders < 4 or not has_qual:
             continue
         if has_integral and has_multi and params not in ("VF", "VOSTFR"):
             result.append(i)
@@ -56,4 +61,6 @@ async def filter_movie_torrent(xml, params):
             result.append(i)
             lang = "vostfr"
             break
+    if not result:
+        raise HTTPException(status_code=500, detail="FILTER : failed")
     return result[0], isIntegral, isMultiLang, lang
