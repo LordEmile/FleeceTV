@@ -1,3 +1,4 @@
 .env
 .venv/
 docs/
+src/api/config/jackett/Jackett

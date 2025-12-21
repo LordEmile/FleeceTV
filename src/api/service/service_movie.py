@@ -92,7 +92,7 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     elif isMulti:
         tmp_file_path = await download_movie_torrent(torrent["link"])
         tmp = max(tmp_file_path, key=lambda p: p.stat().st_size)
-        file_path = await transcode_file(tmp)
+        file_path = await transcode_file(tmp, filename)
         movie = Movie(
             title = infoJson["original_title"],
             tmdb_id = infoJson["id"],

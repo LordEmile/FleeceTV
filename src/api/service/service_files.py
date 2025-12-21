@@ -1,9 +1,8 @@
 import httpx
-import tempfile
+import shutil
 import asyncio
 from html import unescape
 from fastapi import HTTPException
-from moviepy import VideoFileClip
 import libtorrent as libt
 from urllib.parse import unquote
 from dotenv import load_dotenv
@@ -15,15 +14,117 @@ POSTER_DIR = BASE_MEDIA_DIR / "posters"
 MOVIE_DIR = BASE_MEDIA_DIR / "movies"
 
 #fonction pour démarer un service ffmpeg et executer un request
-async def run_ffmpeg(cmd: list[str]) -> None:
+async def run_ffmpeg(cmd: list[str]) -> int:
+    print("\nFFMPEG CMD:\n" + " ".join(cmd) + "\n")
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
         stderr=asyncio.subprocess.PIPE,
     )
-    out, err = await proc.communicate()
-    if proc.returncode != 0:
-        raise HTTPException(status_code=500, detail="FFMPEG : failed")
+    async def pump(stream, prefix: str):
+        while True:
+            chunk = await stream.read(4096)
+            if not chunk:
+                break
+            text = chunk.decode(errors="ignore").replace("\r", "\n")
+            for line in text.splitlines():
+                if line.strip():
+                    print(f"{prefix}{line}")
+    await asyncio.gather(
+        pump(proc.stdout, "STDOUT: "),
+        pump(proc.stderr, "STDERR: "),
+    )
+    return await proc.wait()
+
+def build_ffmpeg_cmd(
+    ffmpeg_bin: str,
+    entry_file: Path,
+    output_file: Path,
+    *,
+    vcodec: str,
+    acodecs: list[str],
+    crf: str = "22",
+    preset: str = "fast",
+    aac_bitrate: str = "384k",
+) -> list[str]:
+    video_copy = (vcodec == "h264")
+    audio_all_aac = (len(acodecs) > 0 and all(a == "aac" for a in acodecs))
+    print(f"VIDEO: {vcodec} -> {'copy' if video_copy else 'transcode libx264'}")
+    print(f"AUDIO: {acodecs} -> {'copy' if audio_all_aac else 'encode all to AAC'}")
+    cmd = [
+        ffmpeg_bin, "-y",
+        "-hide_banner", "-loglevel", "info",
+        "-i", str(entry_file),
+        "-map", "0",
+        "-movflags", "+faststart",
+    ]
+    # Video
+    if video_copy:
+        cmd += ["-c:v", "copy"]
+    else:
+        cmd += ["-c:v", "libx264", "-crf", crf, "-preset", preset]
+    # Audio
+    if audio_all_aac:
+        cmd += ["-c:a", "copy"]
+    else:
+        cmd += ["-c:a", "aac", "-b:a", aac_bitrate]
+    # Subs (simple)
+    cmd += ["-c:s", "mov_text", str(output_file)]
+    return cmd
+
+async def run_cmd(*cmd: str) -> str:
+    p = await asyncio.create_subprocess_exec(
+        *cmd,
+        stdout=asyncio.subprocess.PIPE,
+        stderr=asyncio.subprocess.PIPE,
+    )
+    out, err = await p.communicate()
+    if p.returncode != 0:
+        raise RuntimeError(f"Command failed: {' '.join(cmd)}\n{err.decode(errors='ignore')}")
+    return out.decode(errors="ignore")
+
+async def probe_codecs(entry_file: Path) -> tuple[str, list[str]]:
+    ffprobe = shutil.which("ffprobe")
+    if not ffprobe:
+        raise Exception("ffprobe not found")
+    vcodec = (await run_cmd(
+        ffprobe, "-v", "error",
+        "-select_streams", "v:0",
+        "-show_entries", "stream=codec_name",
+        "-of", "csv=p=0",
+        str(entry_file),
+    )).strip()
+    acodecs_raw = await run_cmd(
+        ffprobe, "-v", "error",
+        "-select_streams", "a",
+        "-show_entries", "stream=codec_name",
+        "-of", "csv=p=0",
+        str(entry_file),
+    )
+    acodecs = [x.strip() for x in acodecs_raw.splitlines() if x.strip()]
+    return vcodec, acodecs
+
+#converti un fichier donné en mp4 avec codex unniformisé
+async def transcode_file(entry_file:Path, final_name:str | None=None):
+    if final_name:
+        output_file = entry_file.with_name(f"{final_name}_multi.mp4")
+    else:
+        output_file = entry_file.with_suffix(".mp4")
+    ffmpeg = shutil.which("ffmpeg")
+    if not ffmpeg:
+        raise Exception("ffmpeg not found")
+    video_codec, audio_codec = await probe_codecs(entry_file)
+    cmd = build_ffmpeg_cmd(entry_file=entry_file, output_file=output_file, 
+                                 acodecs=audio_codec, vcodec=video_codec, 
+                                 ffmpeg_bin=ffmpeg)
+    try:
+        await run_ffmpeg(cmd)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"TRANCODE : failed :: {str(e)}")
+    if entry_file != output_file:
+            entry_file.unlink()
+    print("TRANSCODE : Done")
+    return output_file
 
 
 #download et sauvegarde dans le nas un poster
@@ -39,29 +140,6 @@ async def download_image(img_path : str, filename : str):
     except:
         raise HTTPException(status_code=500, detail="DOWNLOAD IMG : failed")
     return str(file_path)
-
-#converti un fichier donné en mp4 avec codex unniformisé
-async def transcode_file(entry_file:Path, final_name:str | None=None):
-    if final_name:
-        output_file = entry_file.with_name(f"{final_name}_multi.mp4")
-    else:
-        output_file = entry_file.with_suffix(".mp4")
-    clip = None
-    try:
-        clip = VideoFileClip(str(entry_file))
-        clip.write_videofile(
-            str(output_file),
-            codec="libx264",
-            audio_codec="aac"
-        )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"TRANCODE : failed :: {str(e)}")
-    finally:
-        if clip is not None:
-            clip.close()
-        if entry_file != output_file:
-            entry_file.unlink()
-    return output_file
 
 
 #download et sauvegarde en nas une serie de film a partir d'un seul torrent
@@ -139,7 +217,6 @@ async def normalize_magnet(link: str) -> str:
 
     raise HTTPException(status_code=400, detail="TORRENT: normalize_magnet received non-magnet link")
 
-
 def detect_link_type(s: str) -> str:
     s = (s or "").strip()
     if s.startswith("magnet:") or s.startswith("magnet://"):
@@ -149,7 +226,6 @@ def detect_link_type(s: str) -> str:
     if s.endswith(".torrent"):
         return "torrent_path"
     return "unknown"
-
 
 async def fetch_torrent_bytes(url: str) -> bytes:
     url = unescape(url).strip()
@@ -181,7 +257,6 @@ async def fetch_torrent_bytes(url: str) -> bytes:
         raise HTTPException(status_code=502, detail="TORRENT: response not a .torrent (HTML/error)")
 
     return data
-
 
 async def download_movie_torrent(torrent_url: str, timeout_sec: int = 3600) -> list[Path]:
     MOVIE_DIR.mkdir(parents=True, exist_ok=True)
@@ -307,7 +382,7 @@ async def download_movie_torrent(torrent_url: str, timeout_sec: int = 3600) -> l
                     pass
                 last_force = now
             await asyncio.sleep(0.5)
-        print("[TORRENT] metadata OK ✅")
+        print("[TORRENT] metadata OK")
 
         #filtrer les fichier (keep video only)
         fs = handle.get_torrent_info()
@@ -327,7 +402,7 @@ async def download_movie_torrent(torrent_url: str, timeout_sec: int = 3600) -> l
         if not final_paths:
             raise HTTPException(status_code=404, detail="TORRENT: no .mkv/.mp4 found")
         handle.prioritize_files(priorities)
-        print("[TORRENT] priorities set ✅")
+        print("[TORRENT] priorities set")
 
         #Download loop
         start = asyncio.get_running_loop().time()
@@ -343,12 +418,14 @@ async def download_movie_torrent(torrent_url: str, timeout_sec: int = 3600) -> l
                 print(f"[TORRENT][DL] {int(s.progress*100)}% peers={s.num_peers} dl={s.download_rate} ul={s.upload_rate} state={s.state}")
                 last_print = now
             await asyncio.sleep(1)
-        print("[TORRENT] Téléchargement terminé ✅")
+        print("[TORRENT] Téléchargement terminé")
         return final_paths
 
     finally:
         if handle is not None:
             try:
+                if handle.status().is_seeding:
+                    handle.pause()
                 session.remove_torrent(handle)
             except Exception as e:
                 print(f"[TORRENT] remove_torrent failed: {e}")

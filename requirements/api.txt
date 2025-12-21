@@ -6,5 +6,4 @@ psycopg2-binary
 alembic
 libtorrent
 python-dotenv
-moviepy
 httpx
