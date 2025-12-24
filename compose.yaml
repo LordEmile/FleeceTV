@@ -31,7 +31,6 @@ services:
       - "8000:8000"
       - "53317:53317/tcp"
       - "53317:53317/udp"
-
     environment:
       MEDIA_PATH: /media
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@fleeceTV_bd:5432/${POSTGRES_DB}
@@ -60,16 +59,16 @@ services:
       - ./src/api/config/jackett:/config
 
 
-  #fleecetv_portal:
-  #  build:
-  #    context: .
-  #    dockerfile: src/portal/Dockerfile 
-  #  container_name: fleeceTV_portal
-  #  environment:
-  #    FLEECETV_API_URL: ${FLEECETV_API_URL}
-  #  restart: always
-  #  depends_on:
-  #    - fleecetv_api
-  #  ports:
-  #    - "8080:8080"
+  fleecetv_portal:
+    build:
+      context: .
+      dockerfile: src/portal/Dockerfile 
+    container_name: fleeceTV_portal
+    environment:
+      FLEECETV_API_URL: ${FLEECETV_API_URL}
+    restart: always
+    depends_on:
+      - fleecetv_api
+    ports:
+      - "8080:80"
 
