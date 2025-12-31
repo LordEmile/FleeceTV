@@ -39,6 +39,8 @@ services:
       JACKETT_KEY: ${JACKETT_KEY}
     volumes:
       - ${NAS_PATH}:/media:rw
+      - ./alembic:/api/alembic
+      - ./alembic.ini:/api/alembic.ini
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
     sysctls:
       - net.ipv6.conf.all.disable_ipv6=1

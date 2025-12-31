@@ -3,7 +3,7 @@
     "id": "sitelink",
     "type": "inputstring",
     "name": "Site Link",
-    "value": "https://www.zktorrent7.com/"
+    "value": "https://www.zktorrent8.com/"
   },
   {
     "id": "cookieheader",
@@ -15,7 +15,7 @@
     "id": "lasterror",
     "type": "hiddendata",
     "name": "LastError",
-    "value": "Exception (zktorrent): Got redirected to another domain. Try changing the indexer URL to https://ww1-zktorrent.town/.: Parse error"
+    "value": "Test search in ZkTorrent => Found no results while trying to browse this tracker. This may be an issue with the indexer, or other indexer settings such as search freeleech only etc."
   },
   {
     "id": "replacemultibyanotherlanguageinreleasename",

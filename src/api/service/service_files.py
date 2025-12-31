@@ -1,4 +1,5 @@
 import httpx
+import json
 import shutil
 import asyncio
 from html import unescape
@@ -43,6 +44,7 @@ def build_ffmpeg_cmd(
     *,
     vcodec: str,
     acodecs: list[str],
+    subrip_indexes: list[int],
     crf: str = "22",
     preset: str = "fast",
     aac_bitrate: str = "384k",
@@ -51,13 +53,20 @@ def build_ffmpeg_cmd(
     audio_all_aac = (len(acodecs) > 0 and all(a == "aac" for a in acodecs))
     print(f"VIDEO: {vcodec} -> {'copy' if video_copy else 'transcode libx264'}")
     print(f"AUDIO: {acodecs} -> {'copy' if audio_all_aac else 'encode all to AAC'}")
+    print(f"SUBS:  {subrip_indexes} -> {'keep subrip' if subrip_indexes else 'none'}")
     cmd = [
         ffmpeg_bin, "-y",
         "-hide_banner", "-loglevel", "info",
         "-i", str(entry_file),
-        "-map", "0",
+        "-map", "0:v:0?",
+        "-map", "0:a?",
         "-movflags", "+faststart",
     ]
+    # Subs
+    if subrip_indexes:
+        for idx in subrip_indexes:
+            cmd += ["-map", f"0:{idx}"]
+        cmd += ["-c:s", "mov_text"]
     # Video
     if video_copy:
         cmd += ["-c:v", "copy"]
@@ -68,8 +77,7 @@ def build_ffmpeg_cmd(
         cmd += ["-c:a", "copy"]
     else:
         cmd += ["-c:a", "aac", "-b:a", aac_bitrate]
-    # Subs (simple)
-    cmd += ["-c:s", "mov_text", str(output_file)]
+    cmd += [str(output_file)]
     return cmd
 
 async def run_cmd(*cmd: str) -> str:
@@ -83,7 +91,7 @@ async def run_cmd(*cmd: str) -> str:
         raise RuntimeError(f"Command failed: {' '.join(cmd)}\n{err.decode(errors='ignore')}")
     return out.decode(errors="ignore")
 
-async def probe_codecs(entry_file: Path) -> tuple[str, list[str]]:
+async def probe_codecs(entry_file: Path) -> tuple[str, list[str], list[int]]:
     ffprobe = shutil.which("ffprobe")
     if not ffprobe:
         raise Exception("ffprobe not found")
@@ -102,7 +110,25 @@ async def probe_codecs(entry_file: Path) -> tuple[str, list[str]]:
         str(entry_file),
     )
     acodecs = [x.strip() for x in acodecs_raw.splitlines() if x.strip()]
-    return vcodec, acodecs
+    #return only subrip subs
+    subs_json = await run_cmd(
+        ffprobe, "-v", "error",
+        "-select_streams", "s",
+        "-show_entries", "stream=index,codec_name",
+        "-of", "json",
+        str(entry_file),
+    )
+    data = json.loads(subs_json or "{}")
+    streams = data.get("streams") or []
+    scodecs: list[str] = []
+    subrip_indexes: list[int] = []
+    for s in streams:
+        codec = (s.get("codec_name") or "").strip()
+        if codec:
+            scodecs.append(codec)
+        if codec == "subrip" and "index" in s:
+            subrip_indexes.append(int(s["index"]))
+    return vcodec, acodecs, subrip_indexes
 
 #converti un fichier donné en mp4 avec codex unniformisé
 async def transcode_file(entry_file:Path, final_name:str | None=None):
@@ -113,9 +139,9 @@ async def transcode_file(entry_file:Path, final_name:str | None=None):
     ffmpeg = shutil.which("ffmpeg")
     if not ffmpeg:
         raise Exception("ffmpeg not found")
-    video_codec, audio_codec = await probe_codecs(entry_file)
+    video_codec, audio_codec, subrip_indexes = await probe_codecs(entry_file)
     cmd = build_ffmpeg_cmd(entry_file=entry_file, output_file=output_file, 
-                                 acodecs=audio_codec, vcodec=video_codec, 
+                                 acodecs=audio_codec, vcodec=video_codec, subrip_indexes=subrip_indexes,
                                  ffmpeg_bin=ffmpeg)
     try:
         await run_ffmpeg(cmd)

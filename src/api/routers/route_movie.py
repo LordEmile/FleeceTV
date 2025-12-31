@@ -19,18 +19,18 @@ async def get_movies(db:Session=Depends(get_db)):
     movies = await get_all_movie(db=db)
     if not movies:
         raise HTTPException(status_code=404, detail="No Movies Yet")
-    return "a venir"
+    return movies
 
 @route_movie.get("/id/{id}")
 async def get_movie_by(id:int, db:Session=Depends(get_db)):
-    movie = await get_movie_by_id(db=db, id=id)
+    movie = await get_movie_by_id(db=db, movie_id=id)
     if not movie:
         raise HTTPException(status_code=404, detail="Movie Not Found")
     return movie
 
 @route_movie.get("/title/{title}")
 async def get_movie(title:str, db:Session=Depends(get_db)):
-    movie = await get_movie_by_title(db=db, title=title)
+    movie = await get_movie_by_title(db=db, movie_name=title)
     if not movie:
         raise HTTPException(status_code=404, detail="Movie Not Found")
     return movie

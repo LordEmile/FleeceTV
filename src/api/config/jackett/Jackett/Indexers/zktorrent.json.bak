@@ -3,7 +3,7 @@
     "id": "sitelink",
     "type": "inputstring",
     "name": "Site Link",
-    "value": "https://ww1-zktorrent.me/"
+    "value": "https://www.zktorrent8.com/"
   },
   {
     "id": "cookieheader",
@@ -15,7 +15,7 @@
     "id": "lasterror",
     "type": "hiddendata",
     "name": "LastError",
-    "value": "Exception (zktorrent): Got redirected to another domain. Try changing the indexer URL to https://ww1-zktorrent.town/.: Parse error"
+    "value": "Exception (zktorrent): Got redirected to another domain. Try changing the indexer URL to https://www.zktorrent8.com/.: Parse error"
   },
   {
     "id": "replacemultibyanotherlanguageinreleasename",
