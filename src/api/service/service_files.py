@@ -420,7 +420,7 @@ async def download_movie_torrent(torrent_url: str, timeout_sec: int = 3600) -> l
         for idx in range(file_count):
             rel = files.file_path(idx)
             name = rel.lower()
-            is_movie = name.endswith(".mkv") or name.endswith(".mp4")
+            is_movie = name.endswith(".mkv") or name.endswith(".mp4") or name.endswith(".avi")
             priorities.append(4 if is_movie else 0)
             if is_movie:
                 final_paths.append(MOVIE_DIR / rel)

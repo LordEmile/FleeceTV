@@ -40,7 +40,7 @@ async def search_movie_tmdb(title : str, years : str):
 
 #recherche de torrentsa partir de l'api(local) jackett
 async def search_movie_torrent(title : str):
-    url = f"http://jackett:9117/api/v2.0/{VF_INDEXEUR}/all/results/torznab"
+    url = f"http://jackett:9117/api/v2.0/indexers/{VF_INDEXEUR}/results/torznab"
     params = {
         "apikey": JACKETT_KEY,
         "t": "movie",
@@ -128,7 +128,7 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     elif lang == "vf":
         print("[FILTER] not multilang (vf)")
         print("[FILTER] looking for vostfr")
-        torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vostfr")
+        torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="VOSTFR")
         if lang2 == "vostfr":
             print("[FILTER] vostfr anf vf found")
             print("[MERGE] starting merge")
@@ -147,14 +147,14 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
             file = File(
                 movie_id = movie.id,
                 language = EnumLanguage.multi,
-                file_path = file_path
+                file_path = str(file_path)
             )
             db.add(file)
             db.commit()
     elif lang == "vostfr":
         print("[FILTER] not multilang (vostfr)")
         print("[FILTER] looking for vf")
-        torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="vf")
+        torrent2, isIntegral2, isMulti2, lang2 = await filter_movie_torrent(torrentXml, params="VF")
         if lang2 == "vf":
             print("[FILTER] vostfr anf vf found")
             print("[MERGE] starting merge")
