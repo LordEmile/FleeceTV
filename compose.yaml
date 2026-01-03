@@ -63,8 +63,8 @@ services:
 
   fleecetv_portal:
     build:
-      context: .
-      dockerfile: src/portal/Dockerfile 
+      context: src/portal
+      dockerfile: Dockerfile 
     container_name: fleeceTV_portal
     environment:
       FLEECETV_API_URL: ${FLEECETV_API_URL}

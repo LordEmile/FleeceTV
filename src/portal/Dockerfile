@@ -1,3 +1,7 @@
 FROM nginx:alpine
 
-COPY . /usr/share/nginx/html/
+RUN rm /etc/nginx/conf.d/default.conf
+
+COPY config/nginx.conf /etc/nginx/conf.d/default.conf
+COPY templates/ /usr/share/nginx/html/
+COPY static/ /usr/share/nginx/html/static/
