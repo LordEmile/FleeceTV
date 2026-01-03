@@ -16,8 +16,8 @@ from api.service.service_files import *
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
 JACKETT_KEY = os.getenv("JACKETT_KEY")
-VF_INDEXEUR =  "zktorrent"
-ENG_INDEXEUR = ""
+VF_INDEXER =  os.getenv("VF_INDEXER")
+ENG_INDEXER = os.getenv("ENG_INDEXER")
 
 
 #recherche de film a partir de l'api tmdb
@@ -40,7 +40,7 @@ async def search_movie_tmdb(title : str, years : str):
 
 #recherche de torrentsa partir de l'api(local) jackett
 async def search_movie_torrent(title : str):
-    url = f"http://jackett:9117/api/v2.0/indexers/{VF_INDEXEUR}/results/torznab"
+    url = f"http://jackett:9117/api/v2.0/indexers/{VF_INDEXER}/results/torznab"
     params = {
         "apikey": JACKETT_KEY,
         "t": "movie",

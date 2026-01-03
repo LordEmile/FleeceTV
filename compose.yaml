@@ -37,6 +37,8 @@ services:
       TMDB_API_KEY: ${TMDB_API_KEY}
       TMDB_BASE_URL: ${TMDB_BASE_URL}
       JACKETT_KEY: ${JACKETT_KEY}
+      VF_INDEXER: ${VF_INDEXER}
+      ENG_INDEXER: ${ENG_INDEXER} 
     volumes:
       - ${NAS_PATH}:/media:rw
       - ./alembic:/api/alembic
