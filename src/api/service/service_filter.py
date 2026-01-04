@@ -6,7 +6,7 @@ async def filter_movie_torrent(xml, params:str | None=None):
     TRADUCTION = ["FRENCH", "TRUEFRENCH", "VF"]
     VO = ["VOSTFR"]
     MULTI = ["MULTI"]
-    INTEGRAL = ["INTEGRALE","INTEGRALES","(INTEGRALE)", "(INTEGRALES)", "TRILOGIE", "(TRILOGIE)","HEPTALOGY" ,"HEXALOGIE", "(HEXALOGIE)", "(HEPTALOGY)"]
+    INTEGRAL = ["INTEGRALE", "TRILOGIE", "HEPTALOGY" ,"HEXALOGIE", "HEPTALOGY", "HEPTALOGIE"]
     QUAL = ["1080", "1080P","1080p" ,"DVDRIP"]
     try:
         root = ET.fromstring(xml)
