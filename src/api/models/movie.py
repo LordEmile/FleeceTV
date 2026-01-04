@@ -12,8 +12,8 @@ class Movie(Base):
     category = Column(Enum(EnumCategory), nullable=False)
     description = Column(String, nullable=False)
     release_date = Column(Date, nullable=False, default=date.today)
-    rating = Column(Float, nullable=False)
+    rating = Column(String, nullable=True)
     poster_url = Column(String, nullable=False)
     updated_at = Column(Date, nullable=False, default=date.today)
 
-    file = relationship("files", back_populates="movie")
+    file = relationship("File", back_populates="movie")

@@ -29,24 +29,50 @@ services:
       - fleecetv_bd
     ports:
       - "8000:8000"
+      - "53317:53317/tcp"
+      - "53317:53317/udp"
     environment:
       MEDIA_PATH: /media
       DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@fleeceTV_bd:5432/${POSTGRES_DB}
+      TMDB_API_KEY: ${TMDB_API_KEY}
+      TMDB_BASE_URL: ${TMDB_BASE_URL}
+      JACKETT_KEY: ${JACKETT_KEY}
+      VF_INDEXER: ${VF_INDEXER}
+      ENG_INDEXER: ${ENG_INDEXER} 
     volumes:
-      - ${NAS_PATH}:/media:ro
+      - ${NAS_PATH}:/media:rw
+      - ./alembic:/api/alembic
+      - ./alembic.ini:/api/alembic.ini
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
 
 
-  #fleecetv_portal:
-  #  build:
-  #    context: .
-  #    dockerfile: src/portal/Dockerfile 
-  #  container_name: fleeceTV_portal
-  #  environment:
-  #    FLEECETV_API_URL: ${FLEECETV_API_URL}
-  #  restart: always
-  #  depends_on:
-  #    - fleecetv_api
-  #  ports:
-  #    - "8080:8080"
+  jackett:
+    image: lscr.io/linuxserver/jackett
+    container_name: jackett
+    restart: unless-stopped
+    ports:
+      - "9117:9117"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Toronto
+    volumes:
+      - ./src/api/config/jackett:/config
+
+
+  fleecetv_portal:
+    build:
+      context: src/portal
+      dockerfile: Dockerfile 
+    container_name: fleeceTV_portal
+    environment:
+      FLEECETV_API_URL: ${FLEECETV_API_URL}
+    restart: always
+    depends_on:
+      - fleecetv_api
+    ports:
+      - "8080:80"
 

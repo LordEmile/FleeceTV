@@ -11,5 +11,5 @@ class File(Base):
     language = Column(Enum(EnumLanguage), nullable=False)
     file_path = Column(String, nullable=True)
 
-    movie = relationship("movie", back_populates="files")
-    episode = relationship("episode", back_populates="files")
+    movie = relationship("Movie", back_populates="file")
+    episode = relationship("Episode", back_populates="file")
