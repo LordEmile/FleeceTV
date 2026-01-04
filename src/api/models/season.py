@@ -15,5 +15,5 @@ class Season(Base):
     poster_url = Column(String, nullable=False)
     updated_at = Column(Date, default=date.today)
 
-    serie = relationship("serie", back_populates="seasons")
-    season = relationship("season", back_populates="episodes")
+    serie = relationship("Serie", back_populates="season")
+    episode = relationship("Episode", back_populates="season")

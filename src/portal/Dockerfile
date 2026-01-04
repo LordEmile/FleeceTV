@@ -1,9 +1,7 @@
-FROM python:3.12-slim
-ENV PYTHONUNBUFFERED=1
-WORKDIR /portal
-COPY requirements/portal.txt portalRequirements.txt
+FROM nginx:alpine
 
-RUN apt-get update && apt-get install -y && rm -rf /var/lib/apt/lists/*
-RUN pip install --no-cache-dir -r portalRequirements.txt
+RUN rm /etc/nginx/conf.d/default.conf
 
-COPY src/ ./src
+COPY config/nginx.conf /etc/nginx/conf.d/default.conf
+COPY templates/ /usr/share/nginx/html/
+COPY static/ /usr/share/nginx/html/static/
