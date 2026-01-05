@@ -28,8 +28,8 @@ services:
 
   api:
     build:
-      context: .
-      dockerfile: services/api/Dockerfile
+      context: services/api
+      dockerfile: Dockerfile
     container_name: fleeceTV_api
     restart: always
     depends_on:
@@ -47,9 +47,9 @@ services:
       ENG_INDEXER: ${ENG_INDEXER} 
     volumes:
       - ${NAS_PATH}:/media:rw
-      - ./alembic:/api/alembic
-      - ./alembic.ini:/api/alembic.ini
-    command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
+      - .services/api/config/alembic:/alembic
+      - .services/api/alembic.ini:/alembic.ini
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 
 
   worker:

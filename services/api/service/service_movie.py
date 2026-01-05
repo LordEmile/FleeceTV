@@ -5,13 +5,13 @@ from pathlib import Path
 from dotenv import load_dotenv
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from api.models.movie import Movie
-from api.models.file import File
+from models.movie import Movie
+from models.file import File
 from fastapi import HTTPException
-from api.models.enum.language import EnumLanguage
-from api.service.service_filter import filter_movie_torrent
-from api.shemas.shema_movie import movieCreate, movieResponce
-from api.service.service_files import * 
+from models.enum.language import EnumLanguage
+from service.service_filter import filter_movie_torrent
+from shemas.shema_movie import movieCreate, movieResponce
+from service.service_files import * 
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")

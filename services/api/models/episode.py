@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Date,Enum, Float, ForeignKey
-from ..db.base import Base
+from db.base import Base
 from sqlalchemy.orm import relationship
 
 class Episode(Base):

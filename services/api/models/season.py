@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Date,Enum, Float, ForeignKey
 from sqlalchemy.orm import relationship
-from ..db.base import Base
+from db.base import Base
 from datetime import date
 
 class Season(Base):

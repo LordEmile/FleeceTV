@@ -1,5 +1,5 @@
 from pydantic import BaseModel, ConfigDict
-from api.models.enum.category import EnumCategory
+from models.enum.category import EnumCategory
 import datetime
 
 class movieCreate(BaseModel):

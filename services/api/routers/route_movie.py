@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException, Depends
 from sqlalchemy.orm import Session
-from api.db.session import get_db
-from api.shemas.shema_movie import movieCreate
-from api.service.service_movie import get_movie_by_id, get_movie_by_title, get_all_movie, create_movie
+from db.session import get_db
+from shemas.shema_movie import movieCreate
+from service.service_movie import get_movie_by_id, get_movie_by_title, get_all_movie, create_movie
 
 route_movie = APIRouter(prefix="/movie")
 

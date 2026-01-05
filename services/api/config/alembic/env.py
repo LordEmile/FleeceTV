@@ -6,8 +6,8 @@ from sqlalchemy import pool
 
 from alembic import context
 
-from api.db.base import Base
-from api.models import file, movie, serie, season, episode
+from db.base import Base
+from models import file, movie, serie, season, episode
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
