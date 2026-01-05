@@ -1,4 +1,4 @@
 .env
 .venv/
 docs/
-services/api/config/jackett
+services/jackett/Jackett

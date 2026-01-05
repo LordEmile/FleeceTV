@@ -37,11 +37,9 @@ services:
       - redis
     ports:
       - "8000:8000"
-      - "53317:53317/tcp"
-      - "53317:53317/udp"
     environment:
       MEDIA_PATH: /media
-      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@fleeceTV_bd:5432/${POSTGRES_DB}
+      DATABASE_URL: ${DATABASE_URL}
       TMDB_API_KEY: ${TMDB_API_KEY}
       TMDB_BASE_URL: ${TMDB_BASE_URL}
       JACKETT_KEY: ${JACKETT_KEY}
@@ -52,9 +50,6 @@ services:
       - ./alembic:/api/alembic
       - ./alembic.ini:/api/alembic.ini
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000 --reload
-    sysctls:
-      - net.ipv6.conf.all.disable_ipv6=1
-      - net.ipv6.conf.default.disable_ipv6=1
 
 
   worker:
@@ -70,6 +65,9 @@ services:
       - MEDIA_PATH:/media
     volumes:
       - ${NAS_PATH}:/media:rw
+    sysctls:
+      - net.ipv6.conf.all.disable_ipv6=1
+      - net.ipv6.conf.default.disable_ipv6=1
 
 
 
@@ -84,7 +82,7 @@ services:
       - PGID=1000
       - TZ=America/Toronto
     volumes:
-      - ./services/api/config/jackett:/config
+      - ./services/jackett:/config
 
 
   portal:
