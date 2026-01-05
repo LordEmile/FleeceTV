@@ -1,6 +1,6 @@
 services:
 
-  fleecetv_bd:
+  bd:
     image: postgres:16
     container_name: fleeceTV_bd
     restart: always
@@ -19,14 +19,22 @@ services:
       retries: 5
 
 
-  fleecetv_api:
+  redis:
+    image: redis:7
+    container_name: fleeceTV_redis
+    restart: always
+    command: redis-server --appendonly no  --maxmemory 512mb --maxmemory-policy allkeys-lru --save ""
+
+
+  api:
     build:
       context: .
-      dockerfile: src/api/Dockerfile
+      dockerfile: services/api/Dockerfile
     container_name: fleeceTV_api
     restart: always
     depends_on:
-      - fleecetv_bd
+      - bd
+      - redis
     ports:
       - "8000:8000"
       - "53317:53317/tcp"
@@ -49,9 +57,25 @@ services:
       - net.ipv6.conf.default.disable_ipv6=1
 
 
+  worker:
+    build:
+      context: services/worker 
+      dockerfile: Dockerfile
+    container_name: fleeceTV_worker
+    restart: always
+    depends_on:
+      - redis
+      - api
+    environment:
+      - MEDIA_PATH:/media
+    volumes:
+      - ${NAS_PATH}:/media:rw
+
+
+
   jackett:
     image: lscr.io/linuxserver/jackett
-    container_name: jackett
+    container_name: fleeceTV_jackett
     restart: unless-stopped
     ports:
       - "9117:9117"
@@ -60,19 +84,19 @@ services:
       - PGID=1000
       - TZ=America/Toronto
     volumes:
-      - ./src/api/config/jackett:/config
+      - ./services/api/config/jackett:/config
 
 
-  fleecetv_portal:
+  portal:
     build:
-      context: src/portal
+      context: services/portal
       dockerfile: Dockerfile 
     container_name: fleeceTV_portal
     environment:
       FLEECETV_API_URL: ${FLEECETV_API_URL}
     restart: always
     depends_on:
-      - fleecetv_api
+      - api
     ports:
       - "8080:80"
 

@@ -8,4 +8,4 @@ COPY alembic ./alembic
 RUN apt-get update && apt-get install -y ffmpeg && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir -r apiRequirements.txt
 
-COPY src/api ./api
+COPY services/api ./api
