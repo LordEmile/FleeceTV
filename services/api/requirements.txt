@@ -7,3 +7,4 @@ alembic
 libtorrent
 python-dotenv
 httpx
+redis>=5.0

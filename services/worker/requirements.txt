@@ -1,1 +1,2 @@
 libtorrent
+redis>=5.0
