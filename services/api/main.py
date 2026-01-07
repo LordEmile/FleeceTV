@@ -3,6 +3,7 @@ from routers.route_search import route_search
 from routers.route_file import route_file
 from routers.route_movie import route_movie
 from routers.route_serie import route_serie
+from config.redis.redis import redis_client
 
 app = FastAPI()
 app.include_router(route_serie)

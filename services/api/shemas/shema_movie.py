@@ -12,7 +12,7 @@ class movieResponce(BaseModel):
     category : EnumCategory
     description : str
     release_date : datetime.date
-    rating : str
+    rating : str | None = None
     poster_url : str
     updated_at : datetime.date
 
