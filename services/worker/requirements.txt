@@ -1,2 +1,4 @@
 libtorrent
 redis>=5.0
+python-dotenv
+httpx

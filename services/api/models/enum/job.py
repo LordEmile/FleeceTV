@@ -1,9 +1,8 @@
 from enum import Enum
 class EnumJob(Enum):
     noop = "noop"
-    torrent = "torrent"
+    torrentMovie = "torrentMovie"
     transocde = "transcode"
-    merge = "merge"
-    delete = "delete"
-    scan = "scan"
+    mergeMovie = "mergeMovie"
+    splitMovie = "splitMovie"
     

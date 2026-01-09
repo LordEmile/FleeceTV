@@ -11,7 +11,7 @@ from fastapi import HTTPException
 from models.enum.language import EnumLanguage
 from service.service_filter import filter_movie_torrent
 from shemas.shema_movie import movieCreate, movieResponce
-from service.service_files import * 
+from service.service_files import download_image
 
 load_dotenv()
 API_KEY = os.getenv("TMDB_API_KEY")
@@ -180,6 +180,61 @@ async def create_movie(db: Session, data: movieCreate) -> Movie:
     if movie is None:
         raise HTTPException(status_code=404, detail="No Suitable Torrent Found")
     return movie
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 async def get_all_movie(db: Session) -> list[movieResponce]:
