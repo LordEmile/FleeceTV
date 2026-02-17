@@ -1,0 +1,59 @@
+services:
+  
+  mediaDB:
+    container_name: fleeceTV-mediaDB
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${MEDIA_DB} 
+      POSTGRES_USER: ${MEDIA_USER}
+      POSTGRES_PASSWORD: ${MEDIA_PASSWORD}
+    volumes: 
+      - ${MEDIADB_DATA_PATH}:/var/lib/postgresql/data
+
+  pipelineDB:
+    container_name: fleeceTV-pipelineDB
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${PIPELINE_DB} 
+      POSTGRES_USER: ${PIPELINE_USER}
+      POSTGRES_PASSWORD: ${PIPELINE_PASSWORD}
+    volumes: 
+      - ${PIPELINEDB_DATA_PATH}:/var/lib/postgresql/data
+
+  rabbitMQ:
+    container_name: fleeceTV-rabbitMQ
+    image: rabbitmq:3.13-management
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
+    volumes:
+      - ${RABBITMQ_DATA_PATH}:/var/lib/rabbitmq
+
+  media-service:
+    container_name: fleeceTV-mediaService
+    build:
+      context: ../../services/media-service
+      dockerfile: Dockerfile
+    environment:
+      MEDIADB_URL: ${MEDIA_DB_URL}
+      PIPELINEDB_URL: ${PIPELINE_DB_URL}
+    volumes:
+      - ${NAS_PATH}:/media
+    ports:
+      - 8000:8000
+
+  torrent-worker:
+    container_name: fleeceTV-torrentWorker
+    build:
+      context: ../../services/torrent-worker
+      dockerfile: Dockerfile
+
+
+  transcode-worker:
+    container_name: fleeceTV-transcodeWorker
+    build:
+      context: ../../services/transcode-worker
+      dockerfile: Dockerfile
+    volumes:
+      - ${NAS_PATH}:/media
+    
