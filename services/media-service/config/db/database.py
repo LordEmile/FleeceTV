@@ -2,8 +2,8 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-PIPELINEDB = os.getenv("PIPELINEDB_URL")
-MEDIADB = os.getenv("MEDIADB_URL")
+PIPELINEDB = os.getenv("PIPELINE_DB_URL")
+MEDIADB = os.getenv("MEDIA_DB_URL")
 
 #Bases
 MediaBase = declarative_base()

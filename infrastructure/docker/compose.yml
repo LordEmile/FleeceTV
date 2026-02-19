@@ -8,7 +8,7 @@ services:
       POSTGRES_USER: ${MEDIA_USER}
       POSTGRES_PASSWORD: ${MEDIA_PASSWORD}
     volumes: 
-      - ${MEDIADB_DATA_PATH}:/var/lib/postgresql/data
+      - ${MEDIADB_DATA_PATH}:/var/lib/postgresql
 
   pipelineDB:
     container_name: fleeceTV-pipelineDB
@@ -18,7 +18,7 @@ services:
       POSTGRES_USER: ${PIPELINE_USER}
       POSTGRES_PASSWORD: ${PIPELINE_PASSWORD}
     volumes: 
-      - ${PIPELINEDB_DATA_PATH}:/var/lib/postgresql/data
+      - ${PIPELINEDB_DATA_PATH}:/var/lib/postgresql
 
   rabbitMQ:
     container_name: fleeceTV-rabbitMQ
@@ -35,8 +35,8 @@ services:
       context: ../../services/media-service
       dockerfile: Dockerfile
     environment:
-      MEDIADB_URL: ${MEDIA_DB_URL}
-      PIPELINEDB_URL: ${PIPELINE_DB_URL}
+      MEDIA_DB_URL: ${MEDIA_DB_URL}
+      PIPELINE_DB_URL: ${PIPELINE_DB_URL}
     volumes:
       - ${NAS_PATH}:/media
     ports:
