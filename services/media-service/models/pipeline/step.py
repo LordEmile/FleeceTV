@@ -13,7 +13,7 @@ class Step(PipelineBase):
     job_type = Column(Enum(EnumJob), nullable=False)
     status = Column(Enum(EnumStatus), nullable=False)
     retry_count = Column(Integer, nullable=False, default=0)
-    started_at = Column(datetime, nullable=True)
-    completed_at = Column(datetime, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    completed_at = Column(DateTime, nullable=True)
 
     pipeline = relationship("Pipeline", back_populates="steps")
