@@ -29,6 +29,11 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS}
     volumes:
       - ${RABBITMQ_DATA_PATH}:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "chek_port_connectivity"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   media-service:
     container_name: fleeceTV-mediaService
@@ -38,11 +43,16 @@ services:
     environment:
       MEDIA_DB_URL: ${MEDIA_DB_URL}
       PIPELINE_DB_URL: ${PIPELINE_DB_URL}
+      RABBITMQ_URL: ${RABBITMQ_URL}
     volumes:
       - ${NAS_PATH}:/media
       - ../../services/media-service/config/db/:/app/config/db
     ports:
       - 8000:8000
+    depends_on:
+      - rabbitMQ
+      - pipelineDB
+      - mediaDB
 
   torrent-worker:
     container_name: fleeceTV-torrentWorker
