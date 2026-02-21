@@ -59,6 +59,11 @@ services:
     build:
       context: ../../services/torrent-worker
       dockerfile: Dockerfile
+    environment:
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      - media-service
+      - rabbitMQ
 
 
   transcode-worker:
@@ -68,4 +73,9 @@ services:
       dockerfile: Dockerfile
     volumes:
       - ${NAS_PATH}:/media
+    environment:
+      RABBITMQ_URL: ${RABBITMQ_URL}
+    depends_on:
+      - media-service
+      - rabbitMQ
     
