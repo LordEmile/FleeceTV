@@ -1,6 +1,6 @@
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker, Session
 
 PIPELINEDB = os.getenv("PIPELINE_DB_URL")
 MEDIADB = os.getenv("MEDIA_DB_URL")
@@ -25,3 +25,16 @@ PipelineSession = sessionmaker(
     bind=PipelineEngine
 )
 
+def get_media_db():
+    db: Session = MediaSession()
+    try:
+        yield db
+    finally:
+        db.close()
+
+def get_pipeline_db():
+    db: Session = PipelineSession()
+    try:
+        yield db
+    finally:
+        db.close()

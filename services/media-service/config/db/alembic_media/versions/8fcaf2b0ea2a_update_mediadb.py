@@ -1,8 +1,8 @@
-"""init mediaDB
+"""update mediaDB
 
-Revision ID: 54a13338da42
+Revision ID: 8fcaf2b0ea2a
 Revises: 
-Create Date: 2026-02-20 00:15:43.046577
+Create Date: 2026-02-23 19:15:00.600603
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '54a13338da42'
+revision: str = '8fcaf2b0ea2a'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None

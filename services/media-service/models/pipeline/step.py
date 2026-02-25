@@ -2,15 +2,18 @@ from sqlalchemy import Column, Integer, String, DateTime, Enum, Float, ForeignKe
 from config.db.database import PipelineBase
 from models.enums.status import EnumStatus
 from models.enums.job import EnumJob
+from models.enums.worker import EnumWorker
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
 class Step(PipelineBase):
     __tablename__ = "steps"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     pipeline_id = Column(Integer, ForeignKey("pipelines.id"), nullable=False, index=True)
     order_index = Column(Integer, nullable=False)
+    worker = Column(Enum(EnumWorker), nullable=False)
     job_type = Column(Enum(EnumJob), nullable=False)
+    target = Column(String, nullable=True)
     status = Column(Enum(EnumStatus), nullable=False)
     retry_count = Column(Integer, nullable=False, default=0)
     started_at = Column(DateTime, nullable=True)

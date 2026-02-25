@@ -7,7 +7,7 @@ from datetime import datetime
 class Pipeline(PipelineBase):
     __tablename__ = "pipelines"
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
-    target_id = Column(Integer, nullable=False) 
+    target_id = Column(Integer, nullable=True) 
     created_at = Column(DateTime, nullable=False, default=datetime.now)
     updated_at = Column(DateTime,  nullable=False, default=datetime.now, onupdate=datetime.now)
     status = Column(Enum(EnumStatus), nullable=False)
