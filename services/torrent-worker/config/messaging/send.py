@@ -10,7 +10,7 @@ class EventPublisher:
     async def publish(self, routing_key: str, payload: dict):
         exchange  = await self.manager.get_exchange()
         message = Message(
-            body=json.dumps(payload).encode(),
+            body=payload.model_dump_json().encode(),
             delivery_mode=DeliveryMode.PERSISTENT,
             content_type="application/json"
         )

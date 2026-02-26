@@ -3,6 +3,7 @@ import aio_pika
 from aio_pika import Message, IncomingMessage
 from config.messaging.manage import ManageRabbitMQ
 from config.messaging.connect import ConnectRabbitMQ
+from shemas.payload import CreatePayload
 
 class EventReceiver:
     def __init__(self, manager: ManageRabbitMQ):
@@ -20,5 +21,5 @@ class EventReceiver:
 
     async def process(self, message: IncomingMessage, handler):
         async with message.process():
-            payload = json.loads(message.body.decode())
+            payload = CreatePayload.model_validate_json(message.body)
             await handler(payload)
