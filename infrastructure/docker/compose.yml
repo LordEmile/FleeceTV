@@ -1,5 +1,4 @@
 services:
-  
   mediaDB:
     container_name: fleeceTV-mediaDB
     image: postgres:16-alpine
@@ -79,3 +78,21 @@ services:
       - media-service
       - rabbitMQ
     
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: fleeceTV-qbittorrent
+    environment:
+      PUID: 1000
+      PGID: 1000
+      TZ: Etc/UTC
+      TORRENTING_PORT: 6881
+    volumes:
+      - ${NAS_PATH}:/downloads
+      - ../../services/qBittorrent/qbittorrent_default.conf:/config/qBittorrent/qBittorrent.conf:ro
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+
+
